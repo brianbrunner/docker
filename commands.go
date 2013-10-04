@@ -1155,7 +1155,6 @@ func (cli *DockerCli) CmdCommit(args ...string) error {
 	return nil
 }
 
-// Brian update
 func (cli *DockerCli) CmdEdit(args ...string) error {
 	cmd := Subcmd("edit", "[OPTIONS] CONTAINER", "Edit a running container")
 	cpuShares := cmd.Int("c", -1, "CPU shares (relative weight)")
@@ -1665,7 +1664,6 @@ func (cli *DockerCli) call(method, path string, data interface{}) ([]byte, int, 
 	var params io.Reader
 	if data != nil {
 		buf, err := json.Marshal(data)
-		println(string(buf))
 		if err != nil {
 			return nil, -1, err
 		}

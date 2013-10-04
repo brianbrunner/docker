@@ -660,15 +660,11 @@ func postContainersWait(srv *Server, version float64, w http.ResponseWriter, r *
 	return writeJSON(w, http.StatusOK, &APIWait{StatusCode: status})
 }
 
-// Edit shit on a container yea buddy
 func postContainersEdit(srv *Server, version float64, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 
 	name := vars["name"]
 	var editConfigRaw interface{}
 
-	println(r.Body)
-
-	// somehow, we need to distinguish between options not being set at all versus options being set to their defaults
 	if err := json.NewDecoder(r.Body).Decode(&editConfigRaw); err != nil {
 		return err
 	}
@@ -683,7 +679,6 @@ func postContainersEdit(srv *Server, version float64, w http.ResponseWriter, r *
 		return err
 	}
 
-	// return writeJSON(w, http.StatusOK, &APIEdit{//probably put some data about what was updated and shit})
 	w.WriteHeader(http.StatusNoContent)
         return nil
 

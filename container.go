@@ -1102,17 +1102,18 @@ func (container *Container) Wait() int {
 	return container.State.ExitCode
 }
 
+// Edits a running container
 func (container *Container) Edit(editConfig map[string]interface{}) error {
 
 	cgroupEdits := make(map[string]interface{})
 
-	// update memory available to container
 	if memory, ok := editConfig["Memory"]; ok {
 		memoryFloat, ok := memory.(float64)
 		if !ok {
 			return fmt.Errorf("Memory must be a number")
 		}
 		memoryInt := int64(memoryFloat)
+
 		cgroupEdits["memory.limit_in_bytes"] = memoryInt
 		cgroupEdits["memory.soft_limit_in_bytes"] = memoryInt
 	}
@@ -1124,6 +1125,7 @@ func (container *Container) Edit(editConfig map[string]interface{}) error {
 			return fmt.Errorf("CpuShares must be a string representation of an integer")
 		}
 		cpuSharesInt := int64(cpuSharesFloat)
+
 		cgroupEdits["cpu.shares"] = cpuSharesInt
 	}
 
