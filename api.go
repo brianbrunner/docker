@@ -660,6 +660,35 @@ func postContainersWait(srv *Server, version float64, w http.ResponseWriter, r *
 	return writeJSON(w, http.StatusOK, &APIWait{StatusCode: status})
 }
 
+// Edit shit on a container yea buddy
+func postContainersEdit(srv *Server, version float64, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+
+	name := vars["name"]
+	var editConfigRaw interface{}
+
+	println(r.Body)
+
+	// somehow, we need to distinguish between options not being set at all versus options being set to their defaults
+	if err := json.NewDecoder(r.Body).Decode(&editConfigRaw); err != nil {
+		return err
+	}
+
+	editConfig, ok := editConfigRaw.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("JSON does not appear to be in a proper format")
+	}
+	
+	err := srv.ContainerEdit(name, editConfig)
+	if err != nil {
+		return err
+	}
+
+	// return writeJSON(w, http.StatusOK, &APIEdit{//probably put some data about what was updated and shit})
+	w.WriteHeader(http.StatusNoContent)
+        return nil
+
+}
+
 func postContainersResize(srv *Server, version float64, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	if err := parseForm(r); err != nil {
 		return err
@@ -1024,6 +1053,7 @@ func createRouter(srv *Server, logging bool) (*mux.Router, error) {
 			"/containers/{name:.*}/start":   postContainersStart,
 			"/containers/{name:.*}/stop":    postContainersStop,
 			"/containers/{name:.*}/wait":    postContainersWait,
+			"/containers/{name:.*}/edit":    postContainersEdit,
 			"/containers/{name:.*}/resize":  postContainersResize,
 			"/containers/{name:.*}/attach":  postContainersAttach,
 			"/containers/{name:.*}/copy":    postContainersCopy,

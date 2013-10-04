@@ -1102,6 +1102,62 @@ func (container *Container) Wait() int {
 	return container.State.ExitCode
 }
 
+func (container *Container) Edit(editConfig map[string]interface{}) error {
+
+	cgroupEdits := make(map[string]interface{})
+
+	// update memory available to container
+	if memory, ok := editConfig["Memory"]; ok {
+		memoryFloat, ok := memory.(float64)
+		if !ok {
+			return fmt.Errorf("Memory must be a number")
+		}
+		memoryInt := int64(memoryFloat)
+		cgroupEdits["memory.limit_in_bytes"] = memoryInt
+		cgroupEdits["memory.soft_limit_in_bytes"] = memoryInt
+	}
+
+	// update cpu shares assigned to the container
+	if cpuShares, ok := editConfig["CpuShares"]; ok {
+		cpuSharesFloat, ok := cpuShares.(float64)
+		if !ok {
+			return fmt.Errorf("CpuShares must be a string representation of an integer")
+		}
+		cpuSharesInt := int64(cpuSharesFloat)
+		cgroupEdits["cpu.shares"] = cpuSharesInt
+	}
+
+	name_params := []string{
+		"-n", container.ID,
+	}
+
+	println(fmt.Sprintf("%v",cgroupEdits))
+	for subsystem, value := range cgroupEdits {
+
+		var valueStr string
+
+		switch value := value.(type) {
+		case int64:
+			valueStr = strconv.Itoa(int(value))
+		case string:
+		default:
+			continue
+		}
+
+		params := append(name_params, subsystem, valueStr)
+		println(fmt.Sprintf("%v",params))
+		cmd := exec.Command("lxc-cgroup", params...)
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+
+		// TODO update docker internal container representation to reflect cgroup changes
+
+	}
+	return nil
+}
+
 func (container *Container) Resize(h, w int) error {
 	pty, ok := container.ptyMaster.(*os.File)
 	if !ok {

@@ -87,6 +87,7 @@ func (cli *DockerCli) CmdHelp(args ...string) error {
 		{"commit", "Create a new image from a container's changes"},
 		{"cp", "Copy files/folders from the containers filesystem to the host path"},
 		{"diff", "Inspect changes on a container's filesystem"},
+		{"edit", "Edit a running container"},
 		{"events", "Get real time events from the server"},
 		{"export", "Stream the contents of a container as a tar archive"},
 		{"history", "Show the history of an image"},
@@ -1154,6 +1155,34 @@ func (cli *DockerCli) CmdCommit(args ...string) error {
 	return nil
 }
 
+// Brian update
+func (cli *DockerCli) CmdEdit(args ...string) error {
+	cmd := Subcmd("edit", "[OPTIONS] CONTAINER", "Edit a running container")
+	cpuShares := cmd.Int("c", -1, "CPU shares (relative weight)")
+	memoryLimit := cmd.Int("m", -1, "Memory limit (in bytes)")
+	if err := cmd.Parse(args); err != nil {
+		return nil
+	}
+	if cmd.NArg() < 1 {
+		cmd.Usage()
+		return nil
+	}
+
+	name := cmd.Arg(0)
+	edits := make(map[string]interface{})
+	if *cpuShares != -1 {
+		edits["CpuShares"] = *cpuShares
+        }
+	if *memoryLimit != -1 {
+		edits["Memory"] = *memoryLimit
+        }
+	_, _, err := cli.call("POST", "/containers/"+name+"/edit", edits)
+	if err != nil{
+		return err
+	}
+	return nil
+}
+
 func (cli *DockerCli) CmdEvents(args ...string) error {
 	cmd := Subcmd("events", "[OPTIONS]", "Get real time events from the server")
 	since := cmd.String("since", "", "Show events previously created (used for polling).")
@@ -1636,6 +1665,7 @@ func (cli *DockerCli) call(method, path string, data interface{}) ([]byte, int, 
 	var params io.Reader
 	if data != nil {
 		buf, err := json.Marshal(data)
+		println(string(buf))
 		if err != nil {
 			return nil, -1, err
 		}

@@ -1170,6 +1170,18 @@ func (srv *Server) ContainerWait(name string) (int, error) {
 	return 0, fmt.Errorf("No such container: %s", name)
 }
 
+func (srv *Server) ContainerEdit(name string, editConfig map[string]interface{}) error {
+	if container := srv.runtime.Get(name); container != nil {
+		if err := container.Edit(editConfig); err != nil {
+			return fmt.Errorf("Error editing container %s: %s", name, err)
+		}
+		srv.LogEvent("start", container.ShortID(), srv.runtime.repositories.ImageName(container.Image))
+	} else {
+		return fmt.Errorf("No such container: %s", name)
+	}
+	return nil
+}
+
 func (srv *Server) ContainerResize(name string, h, w int) error {
 	if container := srv.runtime.Get(name); container != nil {
 		return container.Resize(h, w)
