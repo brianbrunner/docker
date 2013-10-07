@@ -660,7 +660,7 @@ func postContainersWait(srv *Server, version float64, w http.ResponseWriter, r *
 	return writeJSON(w, http.StatusOK, &APIWait{StatusCode: status})
 }
 
-func postContainersEdit(srv *Server, version float64, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+func postContainersCgroup(srv *Server, version float64, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 
 	name := vars["name"]
 	var editConfigRaw interface{}
@@ -674,7 +674,7 @@ func postContainersEdit(srv *Server, version float64, w http.ResponseWriter, r *
 		return fmt.Errorf("JSON does not appear to be in a proper format")
 	}
 	
-	err := srv.ContainerEdit(name, editConfig)
+	err := srv.ContainerCgroup(name, editConfig)
 	if err != nil {
 		return err
 	}
@@ -1048,7 +1048,7 @@ func createRouter(srv *Server, logging bool) (*mux.Router, error) {
 			"/containers/{name:.*}/start":   postContainersStart,
 			"/containers/{name:.*}/stop":    postContainersStop,
 			"/containers/{name:.*}/wait":    postContainersWait,
-			"/containers/{name:.*}/edit":    postContainersEdit,
+			"/containers/{name:.*}/cgroup":  postContainersCgroup,
 			"/containers/{name:.*}/resize":  postContainersResize,
 			"/containers/{name:.*}/attach":  postContainersAttach,
 			"/containers/{name:.*}/copy":    postContainersCopy,

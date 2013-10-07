@@ -87,7 +87,7 @@ func (cli *DockerCli) CmdHelp(args ...string) error {
 		{"commit", "Create a new image from a container's changes"},
 		{"cp", "Copy files/folders from the containers filesystem to the host path"},
 		{"diff", "Inspect changes on a container's filesystem"},
-		{"edit", "Edit a running container"},
+		{"cgroup", "Modify the cgroup of a running container"},
 		{"events", "Get real time events from the server"},
 		{"export", "Stream the contents of a container as a tar archive"},
 		{"history", "Show the history of an image"},
@@ -1155,10 +1155,11 @@ func (cli *DockerCli) CmdCommit(args ...string) error {
 	return nil
 }
 
-func (cli *DockerCli) CmdEdit(args ...string) error {
-	cmd := Subcmd("edit", "[OPTIONS] CONTAINER", "Edit a running container")
+func (cli *DockerCli) CmdCgroup(args ...string) error {
+	cmd := Subcmd("cgroup", "[OPTIONS] CONTAINER", "Modify the cgroup of a running container")
 	cpuShares := cmd.Int("c", -1, "CPU shares (relative weight)")
 	memoryLimit := cmd.Int("m", -1, "Memory limit (in bytes)")
+	memorySwapLimit := cmd.Int("s", -1, "Memory Swap limit (in bytes)")
 	if err := cmd.Parse(args); err != nil {
 		return nil
 	}
@@ -1175,7 +1176,10 @@ func (cli *DockerCli) CmdEdit(args ...string) error {
 	if *memoryLimit != -1 {
 		edits["Memory"] = *memoryLimit
         }
-	_, _, err := cli.call("POST", "/containers/"+name+"/edit", edits)
+	if *memorySwapLimit != -1 {
+		edits["MemorySwap"] = *memorySwapLimit
+        }
+	_, _, err := cli.call("POST", "/containers/"+name+"/cgroup", edits)
 	if err != nil{
 		return err
 	}

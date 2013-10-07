@@ -1103,7 +1103,7 @@ func (container *Container) Wait() int {
 }
 
 // Edits a running container
-func (container *Container) Edit(editConfig map[string]interface{}) error {
+func (container *Container) Cgroup(editConfig map[string]interface{}) error {
 
 	cgroupEdits := make(map[string]interface{})
 
@@ -1118,7 +1118,16 @@ func (container *Container) Edit(editConfig map[string]interface{}) error {
 		cgroupEdits["memory.soft_limit_in_bytes"] = memoryInt
 	}
 
-	// update cpu shares assigned to the container
+	if memorySwap, ok := editConfig["MemorySwap"]; ok {
+		memorySwapFloat, ok := memorySwap.(float64)
+		if !ok {
+			return fmt.Errorf("MemorySwap must be a number")
+		}
+		memorySwapInt := int64(memorySwapFloat)
+
+		cgroupEdits["memory.memsw.limit_in_bytes"] = memorySwapInt
+	}
+
 	if cpuShares, ok := editConfig["CpuShares"]; ok {
 		cpuSharesFloat, ok := cpuShares.(float64)
 		if !ok {
@@ -1133,7 +1142,6 @@ func (container *Container) Edit(editConfig map[string]interface{}) error {
 		"-n", container.ID,
 	}
 
-	println(fmt.Sprintf("%v",cgroupEdits))
 	for subsystem, value := range cgroupEdits {
 
 		var valueStr string

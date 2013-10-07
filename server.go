@@ -1170,12 +1170,12 @@ func (srv *Server) ContainerWait(name string) (int, error) {
 	return 0, fmt.Errorf("No such container: %s", name)
 }
 
-func (srv *Server) ContainerEdit(name string, editConfig map[string]interface{}) error {
+func (srv *Server) ContainerCgroup(name string, editConfig map[string]interface{}) error {
 	if container := srv.runtime.Get(name); container != nil {
-		if err := container.Edit(editConfig); err != nil {
-			return fmt.Errorf("Error editing container %s: %s", name, err)
+		if err := container.Cgroup(editConfig); err != nil {
+			return fmt.Errorf("Error editing cgroup for container %s: %s", name, err)
 		}
-		srv.LogEvent("start", container.ShortID(), srv.runtime.repositories.ImageName(container.Image))
+		srv.LogEvent("cgroup", container.ShortID(), srv.runtime.repositories.ImageName(container.Image))
 	} else {
 		return fmt.Errorf("No such container: %s", name)
 	}
